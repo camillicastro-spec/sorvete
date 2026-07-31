@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Sorveteria 🍦</title>
+  <style>
+    /* Estilos Globais e Layout */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ffe6f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #ff6699;
+      margin-top: 0;
+    }
+
+    /* Placar */
+    .score-board {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #4A4A4A;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    /* Pedido do Cliente */
+    .order-box {
+      background-color: #fff0f5;
+      border: 2px dashed #ffb3d9;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .order-box h3 {
+      margin: 0 0 10px 0;
+      color: #cc0066;
+    }
+
+    .target-flavors {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    /* Área de Montagem do Sorvete */
+    .ice-cream-display {
+      height: 220px;
+      display: flex;
+      flex-direction: column-reverse; /* Empilha as bolas de baixo para cima */
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .cone {
+      width: 0;
+      height: 0;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-top: 70px solid #d2b48c;
+      margin-top: -5px;
+      z-index: 1;
+    }
+
+    .scoop {
+      width: 70px;
+      height: 60px;
+      border-radius: 50% 50% 45% 45%;
+      margin-bottom: -25px; /* Sobrepõe as bolas levemente */
+      z-index: 2;
+      box-shadow: inset -5px -5px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Cores dos Sabores */
+    .morango { background-color: #ff4d4d; }
+    .chocolate { background-color: #795548; }
+    .baunilha { background-color: #fff8dc; border: 1px solid #e6e6e6; }
+    .cevada-chiclete { background-color: #4dd2ff; }
+
+    /* Botões de Ação */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    button {
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .btn-morango { background-color: #ff4d4d; color: white; }
+    .btn-chocolate { background-color: #795548; color: white; }
+    .btn-baunilha { background-color: #f7e7a1; color: #333; }
+    .btn-chiclete { background-color: #4dd2ff; color: white; }
+
+    .action-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      font-size: 1rem;
+    }
+
+    .btn-deliver { background-color: #28a745; color: white; }
+    .btn-reset { background-color: #dc3545; color: white; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Sorveteria 🍦</h1>
+
+    <div class="score-board">
+      Pontos: <span id="score">0</span>
+    </div>
+
+    <div class="order-box">
+      <h3>Pedido do Cliente:</h3>
+      <div id="target-order" class="target-flavors">Carregando...</div>
+    </div>
+
+    <div class="ice-cream-display">
+      <div class="cone"></div>
+      <div id="ice-cream-stack" style="display: flex; flex-direction: column-reverse; align-items: center;"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-morango" onclick="addScoop('morango')">Morango</button>
+      <button class="btn-chocolate" onclick="addScoop('chocolate')">Chocolate</button>
+      <button class="btn-baunilha" onclick="addScoop('baunilha')">Baunilha</button>
+      <button class="btn-chiclete" onclick="addScoop('cevada-chiclete')">Chiclete</button>
+
+      <button class="action-btn btn-deliver" onclick="deliverOrder()">Entregar Pedido! 🍨</button>
+      <button class="action-btn btn-reset" onclick="clearIceCream()">Lixo 🗑️</button>
+    </div>
+  </div>
+
+  <script>
+    // Configurações do Jogo
+    const flavors = ['morango', 'chocolate', 'baunilha', 'cevada-chiclete'];
+    const flavorNames = {
+      'morango': 'Morango 🍓',
+      'chocolate': 'Chocolate 🍫',
+      'baunilha': 'Baunilha 🍦',
+      'cevada-chiclete': 'Chiclete 🍬'
+    };
+
+    let currentOrder = [];
+    let playerIceCream = [];
+    let score = 0;
+
+    // Elementos DOM
+    const targetOrderEl = document.getElementById('target-order');
+    const iceCreamStackEl = document.getElementById('ice-cream-stack');
+    const scoreEl = document.getElementById('score');
+
+    // Inicia um novo pedido aleatório
+    function generateNewOrder() {
+      currentOrder = [];
+      // Gera entre 1 e 3 bolas de sorvete
+      const scoopCount = Math.floor(Math.random() * 3) + 1;
+
+      for (let i = 0; i < scoopCount; i++) {
+        const randomFlavor = flavors[Math.floor(Math.random() * flavors.length)];
+        currentOrder.push(randomFlavor);
+      }
+
+      // Exibe o pedido na tela
+      targetOrderEl.innerHTML = currentOrder
+        .map(flavor => `<div>${flavorNames[flavor]}</div>`)
+        .join('');
+    }
+
+    // Adiciona uma bola de sorvete na casquinha
+    function addScoop(flavor) {
+      if (playerIceCream.length >= 3) {
+        alert("O sorvete já está muito alto!");
+        return;
+      }
+
+      playerIceCream.push(flavor);
+      renderIceCream();
+    }
+
+    // Atualiza a visualização do sorvete
+    function renderIceCream() {
+      iceCreamStackEl.innerHTML = '';
+      playerIceCream.forEach(flavor => {
+        const scoopDiv = document.createElement('div');
+        scoopDiv.classList.add('scoop', flavor);
+        iceCreamStackEl.appendChild(scoopDiv);
+      });
+    }
+
+    // Limpa o sorvete atual
+    function clearIceCream() {
+      playerIceCream = [];
+      renderIceCream();
+    }
+
+    // Verifica e entrega o pedido
+    function deliverOrder() {
+      if (playerIceCream.length === 0) return;
+
+      // Compara a montagem com o pedido
+      const isCorrect = playerIceCream.length === currentOrder.length &&
+        playerIceCream.every((flavor, index) => flavor === currentOrder[index]);
+
+      if (isCorrect) {
+        score += 10;
+        alert("Pedido Perfeito! +10 Pontos 🎉");
+      } else {
+        score = Math.max(0, score - 5);
+        alert("Ops, pedido errado! -5 Pontos 😞");
+      }
+
+      scoreEl.textContent = score;
+      clearIceCream();
+      generateNewOrder();
+    }
+
+    // Inicializa o jogo ao car

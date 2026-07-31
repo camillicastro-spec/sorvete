@@ -1,0 +1,37 @@
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    text-align:center;
+    background:linear-gradient(#87CEEB,#ffffff);
+}
+
+h1{
+    color:#ff4fa0;
+}
+
+.painel{
+    font-size:22px;
+    margin-bottom:20px;
+}
+
+#areaJogo{
+    width:800px;
+    height:500px;
+    margin:auto;
+    border:4px solid #ff69b4;
+    background:#e6f7ff;
+    position:relative;
+    overflow:hidden;
+    border-radius:20px;
+}
+
+#sorvete{
+    position:absolute;
+    font-size:60px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+#sorvete:hover{
+    transform:scale(1.2);
+}
